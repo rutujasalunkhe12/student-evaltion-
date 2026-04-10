@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: eval_portal_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: eval_portal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: artifacts/api-server/Dockerfile
+    container_name: eval_portal_api
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/eval_portal
+      NODE_ENV: production
+      PORT: 3001
+      SESSION_SECRET: your-secret-key-change-in-production
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Server
+  frontend:
+    build:
+      context: .
+      dockerfile: artifacts/eval-portal/Dockerfile
+      args:
+        VITE_API_BASE_URL: http://api:3001
+    container_name: eval_portal_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE_URL: http://localhost:3001
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: eval_portal_network

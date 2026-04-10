@@ -1,0 +1,26 @@
+{
+    "name": "workspace",
+    "version": "0.0.0",
+    "license": "MIT",
+    "scripts": {
+        "preinstall": "echo skipped",
+        "dev": "pnpm -r --parallel --filter @workspace/api-server --filter @workspace/eval-portal run dev",
+        "dev:api": "pnpm --filter @workspace/api-server dev",
+        "dev:web": "pnpm --filter @workspace/eval-portal dev",
+        "build:api": "pnpm --filter @workspace/api-server build",
+        "build:web": "pnpm --filter @workspace/eval-portal build",
+        "start:api": "pnpm --filter @workspace/api-server start",
+        "build": "pnpm run typecheck && pnpm -r --if-present run build",
+        "typecheck:libs": "tsc --build",
+        "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    },
+    "private": true,
+    "devDependencies": {
+        "prettier": "^3.8.1",
+        "typescript": "~5.9.2"
+    },
+    "dependencies": {
+        "@tailwindcss/oxide-linux-x64-gnu": "^4.2.2",
+        "lightningcss-linux-x64-gnu": "^1.32.0"
+    }
+}

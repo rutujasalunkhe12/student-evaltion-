@@ -1,0 +1,402 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: EvalPortal API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: batches
+    description: Batch and evaluation operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      description: Authenticate guide or student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /batches:
+    get:
+      operationId: getBatches
+      tags: [batches]
+      summary: Get all batches for guide
+      responses:
+        "200":
+          description: List of batches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Batch"
+
+  /batches/{batchId}:
+    get:
+      operationId: getBatch
+      tags: [batches]
+      summary: Get single batch with evaluations
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Batch with student evaluations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchDetail"
+
+  /batches/{batchId}/evaluate:
+    post:
+      operationId: evaluateStudent
+      tags: [batches]
+      summary: Submit evaluation marks for a student
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluationRequest"
+      responses:
+        "200":
+          description: Evaluation submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /students/add:
+    post:
+      operationId: addStudent
+      tags: [batches]
+      summary: Add a new student to a batch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddStudentRequest"
+      responses:
+        "200":
+          description: Student added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "409":
+          description: Student already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /students/{studentId}/evaluation:
+    get:
+      operationId: getStudentEvaluation
+      tags: [batches]
+      summary: Get full evaluation details for a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student evaluation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentEvaluation"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/UserInfo"
+        message:
+          type: string
+      required:
+        - user
+        - message
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [guide, student]
+        department:
+          type: string
+        rollNumber:
+          type: string
+          nullable: true
+        batchId:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - username
+        - name
+        - role
+        - department
+
+    Batch:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        projectTitle:
+          type: string
+        projectDescription:
+          type: string
+        studentCount:
+          type: integer
+        academicYear:
+          type: string
+      required:
+        - id
+        - name
+        - projectTitle
+        - projectDescription
+        - studentCount
+        - academicYear
+
+    BatchDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        projectTitle:
+          type: string
+        projectDescription:
+          type: string
+        academicYear:
+          type: string
+        students:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudentScore"
+      required:
+        - id
+        - name
+        - projectTitle
+        - projectDescription
+        - academicYear
+        - students
+
+    StudentScore:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        rollNumber:
+          type: string
+        guideMarks:
+          type: number
+          nullable: true
+        peerAvg:
+          type: number
+          nullable: true
+        peerCount:
+          type: integer
+        finalScore:
+          type: number
+          nullable: true
+      required:
+        - id
+        - name
+        - rollNumber
+        - peerCount
+
+    StudentEvaluation:
+      type: object
+      properties:
+        student:
+          $ref: "#/components/schemas/StudentScore"
+        peerMarks:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeerMark"
+        formula:
+          type: string
+      required:
+        - student
+        - peerMarks
+        - formula
+
+    PeerMark:
+      type: object
+      properties:
+        givenByName:
+          type: string
+        marks:
+          type: number
+        isGuide:
+          type: boolean
+      required:
+        - givenByName
+        - marks
+        - isGuide
+
+    AddStudentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        rollNumber:
+          type: string
+        batchId:
+          type: integer
+        department:
+          type: string
+        password:
+          type: string
+      required:
+        - name
+        - rollNumber
+        - batchId
+
+    EvaluationRequest:
+      type: object
+      properties:
+        studentId:
+          type: integer
+        marks:
+          type: number
+        evaluatorType:
+          type: string
+          enum: [guide, peer]
+      required:
+        - studentId
+        - marks
+        - evaluatorType

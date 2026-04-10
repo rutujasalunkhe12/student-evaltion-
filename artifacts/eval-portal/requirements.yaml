@@ -1,0 +1,19 @@
+packages:
+  "framer-motion": "For page transitions and smooth UI animations"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes without style conflicts"
+  "lucide-react": "Beautiful, consistent icons for the UI"
+  "date-fns": "For date formatting"
+
+images:
+  - path: "artifacts/eval-portal/public/images/login-hero.png"
+    description: "Abstract 3D geometric shapes in clean white and professional blue tones, representing data analytics and academic evaluation, soft studio lighting"
+    aspect_ratio: "16:9"
+  - path: "artifacts/eval-portal/public/images/logo.png"
+    description: "Minimal modern logo mark with a blue checkmark and chart aesthetic, transparent background, professional and clean"
+    aspect_ratio: "1:1"
+
+notes:
+  - The API uses standard session cookies for auth (credentials: "include" must be set on all fetch requests).
+  - The /api/seed endpoint is assumed to exist for populating sample data.
+  - Generates full UI for all workflows, including missing API stubs if necessary.

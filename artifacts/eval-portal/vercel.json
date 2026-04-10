@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm --filter @workspace/eval-portal build",
+  "outputDirectory": "artifacts/eval-portal/dist",
+  "framework": "vite"
+}

@@ -1,0 +1,19 @@
+name: Deploy API (Render)
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK is not set for this branch"
+            exit 1
+          fi
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK"
+        env:
+          RENDER_DEPLOY_HOOK: ${{ github.ref_name == 'main' && secrets.RENDER_DEPLOY_HOOK_PROD || secrets.RENDER_DEPLOY_HOOK_STAGING }}
